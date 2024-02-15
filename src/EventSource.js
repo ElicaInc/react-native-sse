@@ -33,6 +33,7 @@ class EventSource {
     this.body = options.body || undefined;
     this.debug = options.debug || false;
     this.interval = options.pollingInterval ?? 5000;
+    this.preResponseLength = null;
 
     this._xhr = null;
     this._pollTimer = null;
@@ -174,7 +175,9 @@ class EventSource {
   }
 
   _handleEvent(response) {
-    const parts = response.substr(this.lastIndexProcessed).split('\n');
+    //const parts = response.substr(this.lastIndexProcessed).split('\n');
+    const parts = response.substr(this.preResponseLength ?? 0).split('\n');
+    this.preResponseLength = response.length;
     
     const indexOfDoubleNewline = response.lastIndexOf('\n\n');
     if (indexOfDoubleNewline != -1) {
