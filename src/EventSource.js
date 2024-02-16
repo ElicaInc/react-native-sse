@@ -174,15 +174,38 @@ class EventSource {
     }
   }
 
+  _getLastDoubleNewlineIndex(text) {
+    const lastNN = text.lastIndexOf('\n\n');
+    if (lastNN === -1) {
+      return -1;
+    }
+    return lastNN + 2;
+  }
+
   _handleEvent(response) {
-    //const parts = response.substr(this.lastIndexProcessed).split('\n');
-    const parts = response.substr(this.preResponseLength ?? 0).split('\n');
-    this.preResponseLength = response.length;
-    
+    /* original
+    const parts = response.substr(this.lastIndexProcessed).split('\n');
     const indexOfDoubleNewline = response.lastIndexOf('\n\n');
     if (indexOfDoubleNewline != -1) {
       this.lastIndexProcessed = indexOfDoubleNewline + 2;
     }
+    */
+    
+    /* this way is independent to "lastIndexProcessed"
+    const parts = response.substr(this.preResponseLength ?? 0).split('\n');
+    this.preResponseLength = response.length;
+    */
+
+    /* Emil Junker modified -- start */
+    const indexOfDoubleNewline = this._getLastDoubleNewlineIndex(response);
+
+    if (indexOfDoubleNewline <= this.lastIndexProcessed) {
+      return;
+    }
+  
+    const parts = response.substring(this.lastIndexProcessed, indexOfDoubleNewline).split('\n');
+    this.lastIndexProcessed = indexOfDoubleNewline;
+    /* Emil Junker modified -- end */
     
     let data = [];
     let retry = 0;
